@@ -82,8 +82,8 @@ async function run() {
 
         info("collect subscribers...");
         let subscribers = await getSubscribers();
-        subscribers = await filter(subscribers);
         subscribers.sort();
+        subscribers = await filter(subscribers);
         if(subscribers.length == 0) {
             info("no subscribers, no transfer!");
             return;
@@ -97,6 +97,7 @@ async function run() {
     * going to transfer ${fee.toFixed(3)} of ${rewards.toFixed(3)} GBG to each of ${subscribers.length} subscribers
     *
     ******************************************************************
+    ${(!BROADCAST?"Broadcasting is not enabled! NO transfers. Add \"broadcast\" parameter":"")}
     Press any key to do transfer or Ctrl-C to terminate...
 `);
         await prompt();
@@ -252,9 +253,6 @@ async function filter(subscribers) {
 
 async function transfer(subscribers, fee) {
     debug("transfer " + fee);
-    if(!BROADCAST) {
-        warn("Broadcasting is not enabled! NO transfers. Add \"broadcast\" parameter");
-    }
     const amount = fee.toFixed(3) + " GBG";
     for(let userid of subscribers) {
         if(BROADCAST) {
