@@ -1,0 +1,23 @@
+{
+  "name": "reward_subscribers",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gropox/reward_subscribers.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gropox/reward_subscribers/issues"
+  },
+  "homepage": "https://github.com/gropox/reward_subscribers#readme",
+  "dependencies": {
+    "golos-js": "^0.5.25",
+    "paktc": "^1.0.1"
+  }
+}
