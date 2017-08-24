@@ -1,7 +1,33 @@
 'use strict'
 
+let BROADCAST = false;
+let START_TIME = 0;
+let DEBUG = false;
+let TRACE = false;
+
+for(let val of process.argv) {
+    switch(val) {
+    case "broadcast" :
+        BROADCAST = true;
+        break;
+    case "debug" :
+        DEBUG = true;
+        break;
+    case "trace" :
+        TRACE = true;
+        DEBUG = true;
+        break;
+    }
+}
+
 if(typeof process.env.DEBUG == "undefined") {
     let dbgNamespace = "reward:err,reward:wrn,reward:inf";
+    if(DEBUG) {
+        dbgNamespace += ",reward:dbg";
+    }
+    if(TRACE) {
+        dbgNamespace += ",reward:trc";
+    }
     require("debug").enable(dbgNamespace);
 }
 const golos = require("golos-js");
@@ -19,16 +45,6 @@ const CONFIG = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf8"));
 
 golos.config.set('websocket', CONFIG.websocket);
 
-let BROADCAST = false;
-let START_TIME = 0;
-
-for(let val of process.argv) {
-    switch(val) {
-    case "broadcast" :
-        BROADCAST = true;
-        break;
-    }
-}
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -199,12 +215,12 @@ async function checkActivity(acc) {
 async function checkAccount(acc) {
     let nrep = repLog10(acc.reputation);
     if(CONFIG.minrep > nrep) {
-        info("LOWREP     : " + acc.name + " - " + nrep.toFixed(2));
+        debug("LOWREP     : " + acc.name + " - " + nrep.toFixed(2));
         return false;
     }
 
     if(!await checkActivity(acc)) {
-        info("NOACTIVITY : " + acc.name);
+        debug("NOACTIVITY : " + acc.name);
         return false;
     }
 
@@ -236,10 +252,13 @@ async function filter(subscribers) {
 
 async function transfer(subscribers, fee) {
     debug("transfer " + fee);
+    if(!BROADCAST) {
+        warn("Broadcasting is not enabled! NO transfers. Add \"broadcast\" parameter");
+    }
     const amount = fee.toFixed(3) + " GBG";
     for(let userid of subscribers) {
         if(BROADCAST) {
-            debug("transfer to " + userid + " " + amount + " with memo " + CONFIG.message);
+            info("transfer to " + userid + " " + amount + " with memo " + CONFIG.message);
             await golos.broadcast.transferAsync(CONFIG.wif, CONFIG.account, userid, amount, CONFIG.message);
         } else {
             debug("no broadcast!, transfer to " + userid + " " + amount + " with memo " + CONFIG.message);
