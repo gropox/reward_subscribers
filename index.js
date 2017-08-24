@@ -88,14 +88,15 @@ async function run() {
             info("no subscribers, no transfer!");
             return;
         }
-        const rewards = balance * 0.8;
+        const rewards = balance * CONFIG.percentage / 100;
         const fee = rewards / subscribers.length;
 
         info(`
     *******************************************************************
-    *
-    * going to transfer ${fee.toFixed(3)} of ${rewards.toFixed(3)} GBG to each of ${subscribers.length} subscribers
-    *
+    * Balance            : ${balance.toFixed(3)} GBG
+    * Reward sum         : ${rewards.toFixed(3)} GBG (${CONFIG.percentage}%)
+    * Subscribers        : ${subscribers.length}
+    * Fee per subscriber : ${fee.toFixed(3)}
     ******************************************************************
     ${(!BROADCAST?"Broadcasting is not enabled! NO transfers. Add \"broadcast\" parameter":"")}
     Press any key to do transfer or Ctrl-C to terminate...

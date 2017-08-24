@@ -3,5 +3,6 @@
     "account" : "ropox",
     "wif" : "534nr3u493...",
     "message" : "Thank you for being my follower",
-    "minrep" : 51
+    "minrep" : 51,
+    "percentage" : 80
 }
