@@ -66,6 +66,14 @@ async function prompt() {
 
 async function run() {
     try {
+
+        //plausibility checks
+        if(CONFIG.percentage + CONFIG.owner_percentage > 100) {
+            error("percentage and owner_percentage > 100");
+            process.exit(-1);
+        }
+
+
         let props = await golos.api.getDynamicGlobalPropertiesAsync();
         START_TIME = Date.parse(props.time) - (1000 * 60 * 60 * 24 * 7);
 
@@ -89,21 +97,37 @@ async function run() {
             return;
         }
         const rewards = balance * CONFIG.percentage / 100;
+        const owner_fee = balance * CONFIG.owner_percentage / 100;
         const fee = rewards / subscribers.length;
 
         info(`
     *******************************************************************
     * Balance            : ${balance.toFixed(3)} GBG
     * Reward sum         : ${rewards.toFixed(3)} GBG (${CONFIG.percentage}%)
+    * Owner              : ${CONFIG.owner}
+    * Owner fee          : ${owner_fee.toFixed(3)} GBG (${CONFIG.owner_percentage}%)
     * Subscribers        : ${subscribers.length}
     * Fee per subscriber : ${fee.toFixed(3)}
     ******************************************************************
     ${(!BROADCAST?"Broadcasting is not enabled! NO transfers. Add \"broadcast\" parameter":"")}
     Press any key to do transfer or Ctrl-C to terminate...
 `);
-        await prompt();
+        if(!BROADCAST) {
+            await prompt();
+        } else {
+            info("Broadcasting enabled, start transferring in 5 sec.");
+            await sleep(5000);
+        }
 
         await transfer(subscribers, fee);
+
+        if(BROADCAST && owner_fee > 0.001) {
+            info("transfer owner fee to " + CONFIG.owner + " " + owner_fee.toFixed(3));
+            const memo = `owner fee ${CONFIG.owner_percentage}% of ${balance.toFixed(3)} GBG`;
+            await golos.broadcast.transferAsync(CONFIG.wif, CONFIG.account, CONFIG.owner, owner_fee.toFixed(3) + " GBG", memo);
+        } else {
+            info("no broadcasting, owner fee will not be transfered!");
+        }
 
         info("DONE!");
         process.exit(0);
