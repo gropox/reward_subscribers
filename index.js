@@ -40,21 +40,40 @@ const warn = require("debug")("reward:wrn");
 const fs = require("fs");
 
 const CONFIG_FILE = "config.json";
-
 const CONFIG = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf8"));
+const REWARD_SUBSCRIBERS_REPORT = "rwrds_report";
 
 golos.config.set('websocket', CONFIG.websocket);
 
-
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function saveReport(report) {
+    let saved = false;
+    for(let i = 0; !saved && i < 10; i++) {
+        try {
+            //store
+            let json = JSON.stringify(report);
+            debug("save json " + json);
+            if(BROADCAST) {
+                await golos.broadcast.customJsonAsync(CONFIG.wif, [CONFIG.account], [], 
+                    REWARD_SUBSCRIBERS_REPORT, json);
+            } else {
+                info("no broadcasting, don't save json!");
+            }
+            saved = true;
+        } catch(e) {
+            error(e);
+            sleep(3000);
+        }
+    }
 }
 
 async function prompt() {
 
     var stdin = process.stdin,
         stdout = process.stdout;
-
 
     return new Promise(resolve => {
         stdin.resume();
@@ -128,6 +147,14 @@ async function run() {
         } else {
             info("no broadcasting, owner fee will not be transfered!");
         }
+
+        await saveReport({
+            balance : `${balance.toFixed(3)} GBG`,
+            reward_sum : `${rewards.toFixed(3)} GBG (${CONFIG.percentage}%)`,
+            owner_fee : `${owner_fee.toFixed(3)} GBG (${CONFIG.owner_percentage}%)`,
+            subscribers : subscribers.length,
+            subscriber_fee : `${fee.toFixed(3)} GBG`
+        });
 
         info("DONE!");
         process.exit(0);
