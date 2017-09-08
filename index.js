@@ -266,6 +266,14 @@ async function checkActivity(acc) {
 }
 
 async function checkAccount(acc) {
+
+    for(let re of CONFIG.blacklist) {
+        if(acc.name.match(re)) {
+            debug("BLACKLIST  : " + acc.name);
+            return false;
+        }
+    }
+
     let nrep = repLog10(acc.reputation);
     if(CONFIG.minrep > nrep) {
         debug("LOWREP     : " + acc.name + " - " + nrep.toFixed(2));

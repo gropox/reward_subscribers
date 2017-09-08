@@ -6,5 +6,9 @@
     "minrep" : 51,
     "percentage" : 80,
     "owner" : "bopox",
-    "owner_percentage" : 20
+    "owner_percentage" : 20,
+    "blacklist" : [
+        "deadhead.*",
+        "mommo"
+    ]
 }
