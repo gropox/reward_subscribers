@@ -116,7 +116,7 @@ async function run() {
             return;
         }
         const rewards = balance * CONFIG.percentage / 100;
-        const owner_fee = balance * CONFIG.owner_percentage / 100;
+        let owner_fee = balance * CONFIG.owner_percentage / 100;
         const fee = rewards / subscribers.length;
 
         info(`
@@ -141,6 +141,14 @@ async function run() {
         await transfer(subscribers, fee);
 
         if(BROADCAST && owner_fee > 0.001) {
+            //re-check GBG on balance
+            acc = await golos.api.getAccountsAsync([CONFIG.account]);
+            const rest_balance = parseFloat(acc[0].sbd_balance.split(" ")[0]);
+            if(rest_balance < owner_fee) {
+                info("restbalance is not enough " + rest_balance + " reducing");
+                owner_fee = rest_balance;
+            }
+
             info("transfer owner fee to " + CONFIG.owner + " " + owner_fee.toFixed(3));
             const memo = `owner fee ${CONFIG.owner_percentage}% of ${balance.toFixed(3)} GBG`;
             await golos.broadcast.transferAsync(CONFIG.wif, CONFIG.account, CONFIG.owner, owner_fee.toFixed(3) + " GBG", memo);
